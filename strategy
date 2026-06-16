@@ -1,0 +1,73 @@
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <vector>
+#include <memory>
+
+class SortStrategy {
+public:
+    virtual ~SortStrategy() = default;
+    virtual void sort(std::vector<int>& data) const = 0;
+    virtual std::string name() const = 0;
+};
+
+class AscendingSort : public SortStrategy {
+public:
+    void sort(std::vector<int>& data) const override {
+        std::sort(data.begin(), data.end());
+    }
+    std::string name() const override { return "по возрастанию"; }
+};
+
+class DescendingSort : public SortStrategy {
+public:
+    void sort(std::vector<int>& data) const override {
+        std::sort(data.begin(), data.end(), std::greater<int>());
+    }
+    std::string name() const override { return "по убыванию"; }
+};
+
+class AbsoluteSort : public SortStrategy {
+public:
+    void sort(std::vector<int>& data) const override {
+        std::sort(data.begin(), data.end(), [](int a, int b) {
+            return std::abs(a) < std::abs(b);
+        });
+    }
+    std::string name() const override { return "по модулю"; }
+};
+
+class Sorter {
+    std::unique_ptr<SortStrategy> strategy_;
+
+public:
+    void setStrategy(std::unique_ptr<SortStrategy> s) {
+        strategy_ = std::move(s);
+    }
+
+    void run(std::vector<int> data) const {
+        if (!strategy_) {
+            std::cout << "Стратегия не задана!\n";
+            return;
+        }
+        strategy_->sort(data);
+        std::cout << "Сортировка " << strategy_->name() << ": ";
+        for (int x : data) std::cout << x << " ";
+        std::cout << "\n";
+    }
+};
+
+int main() {
+    std::vector<int> numbers = {3, -1, 4, -1, 5, -9, 2, 6};
+
+    Sorter sorter;
+
+    sorter.setStrategy(std::make_unique<AscendingSort>());
+    sorter.run(numbers);
+
+    sorter.setStrategy(std::make_unique<DescendingSort>());
+    sorter.run(numbers);
+
+    sorter.setStrategy(std::make_unique<AbsoluteSort>());
+    sorter.run(numbers);
+}
